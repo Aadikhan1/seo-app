@@ -77,7 +77,7 @@ if uploaded_file:
             filtered_df = filtered_df[
                 (filtered_df['Organic Traffic'] >= min_traffic) &
                 (filtered_df['Organic Traffic'] <= max_traffic) &
-                (filtered_df['TLD'].isin(selected_cctlds))
+                (filtered_df['Domain'].isin(selected_cctlds))
             ]
 
             st.markdown("---")
