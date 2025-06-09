@@ -142,7 +142,7 @@ if uploaded_file is not None:
         if general_cats:
             def filter_by_categories(row):
                 categories = str(row['Detected Categories']).split(', ')
-                return any(cat in categories for cat in general_cats)
+                return any(cat.strip() in general_cats for cat in categories)
             filtered_df = filtered_df[filtered_df.apply(filter_by_categories, axis=1)]
 
         st.subheader(f"📋 Results ({len(filtered_df)})")
@@ -156,10 +156,9 @@ if uploaded_file is not None:
         if 'Detected Categories' not in filtered_df.columns:
             filtered_df['Detected Categories'] = 'Uncategorized'
 
-        category_list = filtered_df['Detected Categories'].astype(str).split(', ')
-        flat_categories = [item for sublist in category_list for item in sublist]
-        cat_counter = Counter(flat_categories)
-        cat_summary = ', '.join([f"{cat} ({count})" for cat, count in cat_counter.items()])
+        category_list = filtered_df['Detected Categories'].dropna().str.split(', ').explode().tolist()
+        cat_counter = Counter(category_list)
+        cat_summary = ', '.join([f"{cat} ({count})" for cat, count in cat_counter.items() if cat])
         st.markdown(f"**Category Summary:** {cat_summary}")
 
         # Display filtered results
