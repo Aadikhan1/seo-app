@@ -18,7 +18,7 @@ if uploaded_file:
 
         st.success("✅ File uploaded successfully!")
         st.markdown("### 📊 Uploaded Data Preview")
-        st.dataframe(df.head())
+        st.dataframe(df.head(), use_container_width=True)
 
         # -- Category setup --
         st.markdown("---")
@@ -27,48 +27,53 @@ if uploaded_file:
         category_col = 'Category' if 'Category' in df.columns else st.selectbox(
             "Select column for category filtering", df.columns
         )
-
         all_categories = sorted(df[category_col].dropna().unique().tolist())
 
-        with st.expander("📂 Category Filters"):
+        if 'selected_categories' not in st.session_state:
+            st.session_state.selected_categories = all_categories
+
+        # Filter controls below data table
+        with st.expander("📂 Category Filters", expanded=True):
             col1, col2 = st.columns([1, 3])
 
             with col1:
-                select_all = st.button("✅ Select All Categories")
-                clear_all = st.button("❌ Clear All Categories")
+                if st.button("✅ Select All Categories"):
+                    st.session_state.selected_categories = all_categories
+                if st.button("❌ Clear All Categories"):
+                    st.session_state.selected_categories = []
 
-            if 'selected_categories' not in st.session_state:
-                st.session_state.selected_categories = all_categories
+            with col2:
+                selected_categories = st.multiselect(
+                    "Choose Categories to Filter",
+                    all_categories,
+                    default=st.session_state.selected_categories,
+                    key="category_selector"
+                )
 
-            if select_all:
-                st.session_state.selected_categories = all_categories
-            if clear_all:
-                st.session_state.selected_categories = []
-
-            selected_categories = st.multiselect(
-                "Choose Categories to Filter",
-                all_categories,
-                default=st.session_state.selected_categories
-            )
-
-        # -- Filter data --
+        # Filter data
         filtered_df = df[df[category_col].isin(selected_categories)] if selected_categories else df
 
-        # -- Summary count --
-        st.markdown("### 📊 Website Category Summary")
-        category_counts = filtered_df[category_col].value_counts().sort_values(ascending=False)
-        st.dataframe(
-            category_counts.reset_index().rename(columns={'index': 'Category', category_col: 'Count'})
-        )
+        # -- Category summary stats (as buttons above table)
+        st.markdown("### 📌 Website Category Summary")
+        category_counts = filtered_df[category_col].value_counts()
 
+        cat_cols = st.columns(len(category_counts))
+        for i, (cat, count) in enumerate(category_counts.items()):
+            cat_cols[i].button(f"{cat}: {count}", key=f"{cat}_btn", help=f"{count} websites in {cat}")
+
+        # Show filtered data
+        st.markdown("### ✅ Filtered Data")
+        st.dataframe(filtered_df, use_container_width=True)
+
+        # -- Optional chart
         fig, ax = plt.subplots()
-        category_counts.plot(kind='barh', ax=ax)
+        category_counts.plot(kind='barh', ax=ax, color="skyblue")
         ax.invert_yaxis()
         ax.set_xlabel("Number of Websites")
         ax.set_ylabel("Category")
         st.pyplot(fig)
 
-        # -- Search functionality --
+        # -- Search functionality
         st.markdown("### 🔍 Search Filter")
         search_col = st.selectbox("Select column to search", df.columns)
         search_term = st.text_input("Enter search term")
@@ -77,12 +82,13 @@ if uploaded_file:
             filtered_df = filtered_df[
                 filtered_df[search_col].astype(str).str.contains(search_term, case=False)
             ]
+            st.success(f"Showing results for: {search_term}")
 
-        # -- Show filtered data --
-        st.markdown("### ✅ Filtered Data")
-        st.dataframe(filtered_df)
+        # Show searched and filtered results again
+        st.markdown("### 🔎 Search + Filtered Data")
+        st.dataframe(filtered_df, use_container_width=True)
 
-        # -- Download button --
+        # -- Download button
         def convert_df(df):
             output = io.BytesIO()
             with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
@@ -96,6 +102,7 @@ if uploaded_file:
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
+        # Reset Button
         if st.button("🔄 Reset All"):
             st.session_state.selected_categories = all_categories
             st.experimental_rerun()
