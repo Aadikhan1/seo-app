@@ -101,7 +101,7 @@ if uploaded_file is not None:
 
     # Category Filters
     with st.expander("🗂️ Category Filters"):
-        st.markdown("**WorkGine Focus**")
+        st.markdown("**Focus**")
         wg_focus = st.multiselect("", ["Software & SaaS"], default=["Software & SaaS"])
 
         st.markdown("**Key Business Areas**")
