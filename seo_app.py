@@ -44,28 +44,37 @@ if uploaded_file is not None:
 
     # Category detection based on keywords
     category_keywords = {
-        "Automotive": ["car", "vehicle", "automotive", "engine", "auto"],
-        "Real Estate": ["property", "estate", "housing", "real-estate", "rent"],
-        "Fashion": ["style", "fashion", "clothing", "wear", "dresses", "outfit"],
-        "Lifestyle": ["lifestyle", "life", "home", "interior", "living"],
-        "Photography": ["photography", "camera", "photo", "images"],
-        "Software & SaaS": ["software", "tool", "platform", "app", "solution", "SaaS"],
-        "Travel": ["travel", "trip", "vacation", "tour", "destination"],
-        "Education": ["school", "education", "college", "student", "learning"],
-        "Business": ["business", "startup", "entrepreneur", "b2b", "brand"],
-        "Crypto": ["crypto", "bitcoin", "blockchain", "ethereum", "web3"],
-        "Entertainment": ["entertainment", "movies", "shows", "celeb"],
-        "Digital Marketing & SEO": ["seo", "digital marketing", "rank", "SERP", "ads"],
-        "E-commerce": ["shop", "store", "ecommerce", "buy", "product", "deal"],
-        "Service-Based": ["service", "agency", "consulting", "solution", "freelancer"],
-        "Finance": ["finance", "money", "investment", "loan", "bank", "credit"],
-        "Law": ["law", "legal", "attorney", "court"],
-        "Tech": ["tech", "technology", "AI", "machine learning", "gadgets"],
-        "Health": ["health", "wellness", "fitness", "diet", "mental"],
-        "Food": ["food", "cuisine", "recipe", "kitchen"],
-        "Pets": ["pet", "dog", "cat", "animal"],
-        "Blog / Guest Posting": ["guest post", "write for us", "submit article", "contribute"],
-        "Sports": ["sports", "football", "cricket", "athlete"]
+        "Automotive": ["car", "vehicle", "automotive", "engine", "auto", "garage", "dealership", "tires"],
+        "Real Estate": ["property", "estate", "housing", "real-estate", "rent", "apartment", "mortgage", "realtor"],
+        "Fashion": ["style", "fashion", "clothing", "wear", "dresses", "outfit", "runway", "couture", "accessories"],
+        "Lifestyle": ["lifestyle", "life", "home", "interior", "living", "decor", "inspiration", "habits"],
+        "Photography": ["photography", "camera", "photo", "image", "lens", "dslr", "portfolio", "editor"],
+        "Software & SaaS": ["software", "tool", "platform", "app", "solution", "SaaS", "API", "integration"],
+        "Travel": ["travel", "trip", "vacation", "tour", "destination", "journey", "holiday", "flight", "hotel"],
+        "Education": ["school", "education", "college", "student", "learning", "university", "degree", "tutor"],
+        "Business": ["business", "startup", "entrepreneur", "b2b", "brand", "management", "leadership", "operations"],
+        "Crypto": ["crypto", "bitcoin", "blockchain", "ethereum", "web3", "nft", "defi", "altcoin", "token"],
+        "Entertainment": ["entertainment", "movies", "shows", "celeb", "music", "tv", "trailer", "stream"],
+        "Digital Marketing & SEO": ["seo", "digital marketing", "rank", "SERP", "ads", "backlink", "traffic", "campaign"],
+        "E-commerce": ["shop", "store", "ecommerce", "buy", "product", "deal", "checkout", "cart"],
+        "Service-Based": ["service", "agency", "consulting", "solution", "freelancer", "expert", "support"],
+        "Finance": ["finance", "money", "investment", "loan", "bank", "credit", "stocks", "trading", "budget"],
+        "Law": ["law", "legal", "attorney", "court", "case", "justice", "compliance", "regulation"],
+        "Tech": ["tech", "technology", "AI", "machine learning", "gadgets", "coding", "development", "innovation"],
+        "Health": ["health", "wellness", "fitness", "diet", "mental", "exercise", "med", "clinic"],
+        "Food": ["food", "cuisine", "recipe", "kitchen", "cook", "dish", "restaurant", "meal"],
+        "Pets": ["pet", "dog", "cat", "animal", "vet", "puppy", "grooming", "adoption"],
+        "Blog / Guest Posting": ["guest post", "write for us", "submit article", "contribute", "blogging", "editorial"],
+        "Sports": ["sports", "football", "cricket", "athlete", "tournament", "league", "match", "score"],
+        "Home Improvement & Gardening": ["renovation", "garden", "DIY", "landscape", "furniture", "tools"],
+        "Beauty & Personal Care": ["skincare", "makeup", "cosmetics", "beauty", "hair", "salon", "spa"],
+        "Parenting & Family": ["parent", "mom", "dad", "child", "baby", "family", "kids", "parenting"],
+        "Jobs & Career": ["career", "job", "resume", "interview", "recruitment", "hiring", "vacancy"],
+        "News & Media": ["news", "breaking", "media", "report", "journal", "headline"],
+        "Religion & Spirituality": ["religion", "spiritual", "faith", "god", "church", "temple", "belief", "bible"],
+        "Science & Research": ["science", "research", "experiment", "study", "data", "lab"],
+        "Games & Gaming": ["games", "gaming", "esports", "console", "pc game", "mobile game", "stream"],
+        "Art & Design": ["art", "design", "painting", "illustration", "graphic", "gallery"],
     }
     def detect_categories(text):
         text = str(text).lower()
@@ -79,7 +88,16 @@ if uploaded_file is not None:
     df['Detected Categories'] = df.iloc[:, 0].apply(detect_categories)
 
     # Unique TLDs
-    unique_tlds = sorted(df['Tld'].unique())
+    tld_list = [
+        ".com", ".net", ".org", ".info", ".biz", ".co", ".us", ".uk", ".ca", ".au", ".in", ".de", ".fr", ".cn",
+        ".jp", ".br", ".ru", ".it", ".es", ".nl", ".se", ".no", ".fi", ".za", ".mx", ".ar", ".pl", ".tr", ".id", ".ir",
+        ".ae", ".kr", ".sg", ".nz", ".my", ".hk", ".ch", ".at", ".be", ".cz", ".gr", ".pt", ".ro", ".hu", ".sk", ".bg",
+        ".lt", ".lv", ".ee", ".ph", ".th", ".vn", ".sa", ".ng", ".pk", ".bd", ".lk", ".eg", ".il", ".ua", ".by", ".kz",
+        ".tv", ".me", ".cc", ".xyz", ".site", ".online", ".store", ".tech", ".app", ".io", ".dev", ".ai", ".cloud",
+        ".space", ".website", ".fun", ".news", ".live", ".media", ".blog", ".shop", ".design", ".pro", ".jobs",
+        ".name", ".travel", ".mobi", ".tel", ".museum", ".coop", ".int", ".gov", ".edu", ".mil"
+    ]
+    unique_tlds = sorted(tld_list)
 
     # Category Filters
     with st.expander("🗂️ Category Filters"):
