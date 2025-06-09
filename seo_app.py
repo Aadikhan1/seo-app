@@ -75,8 +75,8 @@ if uploaded_file:
 
             # Dummy filtering logic (should match your real columns)
             filtered_df = filtered_df[
-                (filtered_df['Traffic'] >= min_traffic) &
-                (filtered_df['Traffic'] <= max_traffic) &
+                (filtered_df['Organic Traffic'] >= min_traffic) &
+                (filtered_df['Organic Traffic'] <= max_traffic) &
                 (filtered_df['TLD'].isin(selected_cctlds))
             ]
 
