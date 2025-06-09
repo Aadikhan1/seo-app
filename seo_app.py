@@ -1,114 +1,144 @@
 import streamlit as st
 import pandas as pd
-import os
-import re
 from urllib.parse import urlparse
+from collections import Counter
+import base64
 
-st.set_page_config(page_title="SEO Backlink Filter", layout="wide")
+# Streamlit page config
+st.set_page_config(page_title="Advanced Website Category Filter Tool", layout="wide")
+st.markdown("""
+    <style>
+    .css-18e3th9 {padding-top: 2rem;}
+    .stButton > button {width: 100%;}
+    .block-container {padding-top: 1rem;}
+    .css-1d391kg {gap: 1rem;}
+    .css-1kyxreq {gap: 1rem;}
+    </style>
+""", unsafe_allow_html=True)
 
-st.title("🔍 SEO Competitor Backlink Filter")
+st.title("🔎 Advanced Website Category Filter Tool")
 
-# --- CATEGORY DETECTION LOGIC ---
-category_keywords = {
-    "Automotive": ["car", "vehicle", "automotive", "engine", "auto"],
-    "Real Estate": ["property", "estate", "housing", "real-estate", "rent"],
-    "Fashion": ["style", "fashion", "clothing", "wear", "dresses", "outfit"],
-    "Lifestyle": ["lifestyle", "life", "home", "interior", "living", "self-care"],
-    "Photography": ["photography", "camera", "photo", "images"],
-    "Software & SaaS": ["software", "tool", "platform", "app", "solution", "saas"],
-    "Travel": ["travel", "trip", "vacation", "tour", "destination"],
-    "Education": ["school", "education", "college", "student", "learning"],
-    "Business": ["business", "startup", "entrepreneur", "b2b", "brand"],
-    "Crypto": ["crypto", "bitcoin", "blockchain", "ethereum", "web3"],
-    "Entertainment": ["entertainment", "movies", "shows", "celeb", "music"],
-    "SEO & Digital Marketing": ["seo", "digital marketing", "rank", "serp", "ads", "optimization"],
-    "E-commerce": ["shop", "store", "ecommerce", "buy", "product", "deal"],
-    "Service-Based": ["service", "agency", "consulting", "solution", "freelancer"],
-    "Finance": ["finance", "money", "investment", "loan", "bank", "credit"],
-    "Law": ["law", "legal", "attorney", "court"],
-    "Tech": ["tech", "technology", "ai", "machine learning", "gadgets", "tools"],
-    "Health": ["health", "wellness", "fitness", "diet", "mental", "brain"],
-    "Food": ["food", "cuisine", "recipe", "kitchen", "cook"],
-    "Pets": ["pet", "dog", "cat", "animal", "wildlife"],
-    "Blog / Guest Posting": ["guest post", "write for us", "submit article", "contribute"],
-    "Sports": ["sports", "football", "cricket", "athlete", "match"],
-}
+# File Upload
+uploaded_file = st.file_uploader("Upload your website data file (CSV or Excel):", type=['csv', 'xlsx'])
 
-def detect_categories(text):
-    text = str(text).lower()
-    matched_categories = []
-    for category, keywords in category_keywords.items():
-        if any(keyword in text for keyword in keywords):
-            matched_categories.append(category)
-    return ', '.join(set(matched_categories)) if matched_categories else 'Uncategorized'
-
-def extract_tld(domain):
-    try:
-        netloc = urlparse(domain).netloc
-        tld = netloc.split('.')[-1]
-        return tld.lower()
-    except:
-        return ''
-
-# --- SIDEBAR ---
-with st.sidebar:
-    st.header("📤 Upload Your File")
-    uploaded_file = st.file_uploader("Upload Excel or CSV file", type=["xlsx", "csv"])
-    st.markdown("---")
-    st.markdown("📌 **Instructions:**")
-    st.markdown("• Upload a file with a column containing domain URLs or backlinks.\n"
-                "• Detected categories and TLDs will auto-populate.\n"
-                "• Use filters below the table to refine your view.")
-
-# --- MAIN LOGIC ---
-if uploaded_file:
-    filename = uploaded_file.name
-    if filename.endswith('.xlsx'):
-        df = pd.read_excel(uploaded_file)
-    elif filename.endswith('.csv'):
+if uploaded_file is not None:
+    if uploaded_file.name.endswith('.csv'):
         df = pd.read_csv(uploaded_file)
     else:
-        st.error("Unsupported file format.")
-        st.stop()
+        df = pd.read_excel(uploaded_file)
 
-    st.success("✅ File uploaded successfully!")
+    # Extract domain and TLD
+    def extract_domain(url):
+        try:
+            parsed = urlparse(url)
+            return parsed.netloc if parsed.netloc else parsed.path
+        except:
+            return ""
 
-    # Detect column with URLs (auto-detect first column if unsure)
-    url_column = df.columns[0]
+    def extract_tld(domain):
+        parts = domain.lower().split('.')
+        return '.' + parts[-1] if len(parts) > 1 else ''
 
-    # Detect categories
-    df['Detected Categories'] = df[url_column].apply(detect_categories)
+    df['Domain'] = df.iloc[:, 0].apply(extract_domain)
+    df['Tld'] = df['Domain'].apply(extract_tld)
 
-    # Extract TLDs
-    df['TLD'] = df[url_column].apply(extract_tld)
+    # Category detection based on keywords
+    category_keywords = {
+        "Automotive": ["car", "vehicle", "automotive", "engine", "auto"],
+        "Real Estate": ["property", "estate", "housing", "real-estate", "rent"],
+        "Fashion": ["style", "fashion", "clothing", "wear", "dresses", "outfit"],
+        "Lifestyle": ["lifestyle", "life", "home", "interior", "living"],
+        "Photography": ["photography", "camera", "photo", "images"],
+        "Software & SaaS": ["software", "tool", "platform", "app", "solution", "SaaS"],
+        "Travel": ["travel", "trip", "vacation", "tour", "destination"],
+        "Education": ["school", "education", "college", "student", "learning"],
+        "Business": ["business", "startup", "entrepreneur", "b2b", "brand"],
+        "Crypto": ["crypto", "bitcoin", "blockchain", "ethereum", "web3"],
+        "Entertainment": ["entertainment", "movies", "shows", "celeb"],
+        "Digital Marketing & SEO": ["seo", "digital marketing", "rank", "SERP", "ads"],
+        "E-commerce": ["shop", "store", "ecommerce", "buy", "product", "deal"],
+        "Service-Based": ["service", "agency", "consulting", "solution", "freelancer"],
+        "Finance": ["finance", "money", "investment", "loan", "bank", "credit"],
+        "Law": ["law", "legal", "attorney", "court"],
+        "Tech": ["tech", "technology", "AI", "machine learning", "gadgets"],
+        "Health": ["health", "wellness", "fitness", "diet", "mental"],
+        "Food": ["food", "cuisine", "recipe", "kitchen"],
+        "Pets": ["pet", "dog", "cat", "animal"],
+        "Blog / Guest Posting": ["guest post", "write for us", "submit article", "contribute"],
+        "Sports": ["sports", "football", "cricket", "athlete"]
+    }
+    def detect_categories(text):
+        text = str(text).lower()
+        matched_categories = []
+        for category, keywords in category_keywords.items():
+            if any(keyword in text for keyword in keywords):
+                matched_categories.append(category)
+        return ', '.join(set(matched_categories)) if matched_categories else 'Uncategorized'
 
-    # --- FILTERING CONTROLS ---
-    st.subheader("🎛️ Filters")
+    # Apply category detection on URLs or title column
+    df['Detected Categories'] = df.iloc[:, 0].apply(detect_categories)
 
-    # Category filter
-    unique_categories = sorted(set(cat for cats in df['Detected Categories'].dropna().str.split(', ') for cat in cats))
-    selected_categories = st.multiselect("Filter by Categories", unique_categories, default=unique_categories)
+    # Unique TLDs
+    unique_tlds = sorted(df['Tld'].unique())
 
-    # TLD filter
-    unique_tlds = sorted(df['TLD'].dropna().unique())
-    selected_tlds = st.multiselect("Filter by TLDs", unique_tlds, default=unique_tlds)
+    # Category Filters
+    with st.expander("🗂️ Category Filters"):
+        st.markdown("**WorkGine Focus**")
+        wg_focus = st.multiselect("", ["Software & SaaS"], default=["Software & SaaS"])
 
-    # Search bar
-    search_query = st.text_input("🔍 Search URLs")
+        st.markdown("**Key Business Areas**")
+        key_areas = st.multiselect("", ["Digital Marketing & SEO", "Business & Finance", "Real Estate", "Automotive", "Home Improvement & Gardening"], default=[])
 
-    # Apply filters
-    filtered_df = df[df['Detected Categories'].apply(lambda x: any(cat in x for cat in selected_categories))]
-    filtered_df = filtered_df[filtered_df['TLD'].isin(selected_tlds)]
+        st.markdown("**Filter by Website Purpose/Structure**")
+        purposes = st.multiselect("", ["Blog / Guest Posting", "Service-Based", "E-commerce"], default=[])
 
-    if search_query:
-        filtered_df = filtered_df[filtered_df[url_column].str.contains(search_query, case=False, na=False)]
+        st.markdown("**General Categories**")
+        general_cats = st.multiselect("", ["Business", "Tech", "Fashion", "Sports", "Travel", "Crypto", "Finance", "Education", "Health", "Law", "Lifestyle", "Music", "Pets", "Photography", "Entertainment", "Food"], default=[])
 
-    # --- TABLE DISPLAY ---
-    st.subheader(f"📊 Filtered Results ({len(filtered_df)} rows)")
-    st.dataframe(filtered_df, use_container_width=True)
+    # Geographic & Domain Filters
+    with st.expander("🌍 Geographic & Domain Filters"):
+        col1, col2 = st.columns(2)
+        with col1:
+            selected_countries = st.multiselect("Country Filter", ["USA", "UK", "India", "Australia", "Germany", "Canada", "Other"], default=[])
+        with col2:
+            selected_tlds = st.multiselect("ccTLD Filter (Domain Extensions):", options=unique_tlds, default=unique_tlds)
 
-    # --- DOWNLOAD ---
-    st.download_button("📥 Download Filtered Data", filtered_df.to_csv(index=False), file_name="filtered_backlinks.csv", mime="text/csv")
+    # Traffic Filters
+    with st.expander("📈 Traffic Filters"):
+        col1, col2 = st.columns(2)
+        with col1:
+            min_traffic = st.number_input("Minimum Traffic Threshold:", value=0)
+        with col2:
+            max_traffic = st.number_input("Maximum Traffic Threshold:", value=500)
 
-else:
-    st.warning("⬅️ Upload a file to begin.")
+    # Process Button
+    if st.button("⚙️ Process and Filter Websites"):
+        filtered_df = df[df['Tld'].isin(selected_tlds)]
+
+        if 'Traffic' in df.columns:
+            filtered_df = filtered_df[(filtered_df['Traffic'] >= min_traffic) & (filtered_df['Traffic'] <= max_traffic)]
+        else:
+            filtered_df['Traffic'] = 0
+
+        st.subheader(f"📋 Results ({len(filtered_df)})")
+
+        # TLD Summary
+        tld_counts = filtered_df['Tld'].value_counts().to_dict()
+        tld_summary = ', '.join([f"{k} ({v})" for k, v in tld_counts.items()])
+        st.markdown(f"**TLD Summary:** {tld_summary}")
+
+        # Category Summary
+        if 'Detected Categories' not in filtered_df.columns:
+            filtered_df['Detected Categories'] = 'Uncategorized'
+
+        category_list = filtered_df['Detected Categories'].astype(str).str.split(', ')
+        flat_categories = [item for sublist in category_list for item in sublist]
+        cat_counter = Counter(flat_categories)
+        cat_summary = ', '.join([f"{cat} ({count})" for cat, count in cat_counter.items()])
+        st.markdown(f"**Category Summary:** {cat_summary}")
+
+        # Display filtered results
+        st.dataframe(filtered_df[['Domain', 'Traffic', 'Detected Categories', 'Tld']])
+
+        csv_data = filtered_df.to_csv(index=False).encode('utf-8')
+        st.download_button("⬇️ Download Results", csv_data, file_name="filtered_websites.csv", mime='text/csv')
