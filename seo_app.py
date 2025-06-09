@@ -21,7 +21,7 @@ if uploaded_file:
 
         # WorkGine Focus
         with st.container():
-            st.markdown("**WorkGine Focus**")
+            st.markdown("**Focus**")
             workgine_focus = st.multiselect("", ["Software & SaaS"], default=["Software & SaaS"])
 
         # Key Business Areas
