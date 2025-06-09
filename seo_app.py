@@ -42,6 +42,24 @@ if uploaded_file is not None:
     df['Domain'] = df.iloc[:, 0].apply(extract_domain)
     df['Tld'] = df['Domain'].apply(extract_tld)
 
+    # Category detection based on domain
+    def detect_category(domain):
+        categories = {
+            'newtopchem.com': 'Chemicals',
+            'artsshop.net': 'Art & Crafts',
+            'digimagicmaster.com': 'Digital Services',
+            'xiamenjiyang.com': 'Manufacturing',
+            'shantidevicollage.org': 'Education',
+            'universalpost.co.uk': 'News',
+            'bloggerkece.com': 'Blogging',
+            'beaconss.com': 'Business',
+            'boardmarkets.com': 'Finance',
+            'sharktankguru.com': 'Entertainment'
+        }
+        return categories.get(domain, 'Unknown')
+
+    df['Detected Categories'] = df['Domain'].apply(detect_category)
+
     # Unique TLDs
     unique_tlds = sorted(df['Tld'].unique())
 
