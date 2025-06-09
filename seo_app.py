@@ -4,7 +4,7 @@ import io
 import matplotlib.pyplot as plt
 
 st.set_page_config(page_title=Advanced Website Category Filter Tool, layout=wide)
-st.title(🕵️ Advanced Website Category Filter Tool)
+st.title("🕵️ Advanced Website Category Filter Tool")
 
 uploaded_file = st.file_uploader(📤 Upload your website data file (CSV or Excel), type=[csv, xlsx])
 
