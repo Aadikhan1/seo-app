@@ -3,7 +3,7 @@ import pandas as pd
 import io
 
 st.set_page_config(page_title="Advanced Website Category Filter Tool", layout="wide")
-st.title("\U0001F50D Advanced Website Category Filter Tool")
+st.title("\U0001F50D Advanced Website Category Filter Tool - NEW")
 
 uploaded_file = st.file_uploader("Upload your website data file (CSV or Excel):", type=["csv", "xlsx"])
 
