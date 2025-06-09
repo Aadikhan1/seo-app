@@ -138,6 +138,13 @@ if uploaded_file is not None:
         else:
             filtered_df['Traffic'] = 0
 
+        # Apply General Categories filter
+        if general_cats:
+            def filter_by_categories(row):
+                categories = str(row['Detected Categories']).split(', ')
+                return any(cat in categories for cat in general_cats)
+            filtered_df = filtered_df[filtered_df.apply(filter_by_categories, axis=1)]
+
         st.subheader(f"📋 Results ({len(filtered_df)})")
 
         # TLD Summary
@@ -149,7 +156,7 @@ if uploaded_file is not None:
         if 'Detected Categories' not in filtered_df.columns:
             filtered_df['Detected Categories'] = 'Uncategorized'
 
-        category_list = filtered_df['Detected Categories'].astype(str).str.split(', ')
+        category_list = filtered_df['Detected Categories'].astype(str).split(', ')
         flat_categories = [item for sublist in category_list for item in sublist]
         cat_counter = Counter(flat_categories)
         cat_summary = ', '.join([f"{cat} ({count})" for cat, count in cat_counter.items()])
